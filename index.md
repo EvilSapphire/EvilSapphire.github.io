@@ -5,6 +5,7 @@ title: Welcome Page
 
 ## Welcome, travellers, to the cyber corner of a newbie Reverse Engineer. Here be good ale, and dirty analyses of binaries that I find interesting!
 
+Here are the entries so far: 
 
 <div class="posts">
   {% for post in site.posts %}
@@ -12,10 +13,12 @@ title: Welcome Page
 
       <h1><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h1>
 
+      {% comment %}
       <div class="entry">
         {{ post.excerpt }}
       </div>
-
+      {% endcomment %}
+      
       <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
     </article>
   {% endfor %}
