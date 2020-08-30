@@ -4,12 +4,13 @@ title: About
 permalink: /about/
 ---
 
-Some information about you!
+A guy who likes to fiddle with OS Userland internals. Professionally coming from a Network Security background, looking to switch to Reverse Engineering.
 
-### More Information
 
-A place to include any other types of information that you'd like to include about yourself.
+<!-- ### More Information -->
 
+ A place to include any other types of information that you'd like to include about yourself.
+-->
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+[evilsapphire_s@yahoo.com](mailto:evilsapphire_s@yahoo.com)
