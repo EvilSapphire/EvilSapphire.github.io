@@ -17,9 +17,10 @@ Here are the entries so far:
       <div class="entry">
         {{ post.excerpt }}
       </div>
-      {% endcomment %}
+      
       
       <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a>
+      {% endcomment %}
     </article>
   {% endfor %}
 </div>
