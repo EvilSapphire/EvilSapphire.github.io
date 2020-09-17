@@ -56,3 +56,5 @@ Gets the system time at which the malware is running and places the information 
 Gets the Local IP of the system via two calls to `gethostname` and `gethostbyname` and enumerating the returned `hostent` structure.
 
 This collected information is placed to a HTTP GET Request string using the `_sprintf` call below and sent over to fukyu[.]jp/updata/TPDB[.]php (**!WARNING!**) via a HTTP request. The functionality on this PHP page must have been to collect the data sent via the GET request and store them in the database, so that the C2C server of the malware will have a record of all the infected hosts and the time at which they were infected.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/12_send "{{ site.baseurl }}/images/SMBWorm/12_send")
