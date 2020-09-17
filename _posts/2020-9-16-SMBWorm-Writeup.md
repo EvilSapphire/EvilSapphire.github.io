@@ -31,9 +31,28 @@ The malware stores the System Directory location (C:\Windows\System32) to a stri
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/urldownloadtofile_8.JPG "{{ site.baseurl }}/images/SMBWorm/urldownloadtofile_8.JPG")
 
-it tries to download http://fukyu<.>jp/updata/ACCl3.jpg (warning) 's content to the C:\Windows\System32\msupd.exe file, and then tries to run the executable with a call to `CreateProcessA`.
+it tries to download http://fukyu<.>jp/updata/ACCl3.jpg (**!WARNING!**) 's content to the C:\Windows\System32\msupd.exe file, and then tries to run the executable with a call to `CreateProcessA`.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/9_createprocess.JPG "{{ site.baseurl }}/images/SMBWorm/9_createprocess.JPG")
 
 The jpg file on the malicious website is then actually a windows PE executable file. At the time of writing this the domain doesn't have a DNS record therefore has been taken down, so we can't go ahead with analysing its content. However, we can go forward and analyse the rest of the malware.
 
+After the call to sub_401eb0, there's another call as seen to sub_401c40. Let's take a look at what this subroutine does:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/13_connect.JPG "{{ site.baseurl }}/images/SMBWorm/13_connect.JPG")
+
+First there's a call to `connect` to the malware's C2C server 125[.]206[.]117[.]59 over TCP port 80 (**!WARNING!**). This was the DNS record of fukyu[.]jp (**!WARNING!**) when the domain was alive. If the call to `connect` succeeds, the malware goes on and collects various user info from the infected host and places them to multiple strings on the stack:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/10_collectdata.JPG "{{ site.baseurl }}/images/SMBWorm/10_collectdata.JPG")
+
+The APIs `GetLocaleInfoA` and `GetComputerNameA` are self explanatory. A peek into the other two subroutines sub_401A70 and sub_402090 reveals that the first subroutine:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/14_getsystime.JPG "{{ site.baseurl }}/images/SMBWorm/14_getsystime.JPG")
+
+Gets the system time at which the malware is running and places the information to a string. And sub_402090:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/11_getlocalIP.JPG "{{ site.baseurl }}/images/SMBWorm/11_getlocalIP.JPG")
+
+Gets the Local IP of the system via two calls to `gethostname` and `gethostbyname` and enumerating the returned `hostent` structure.
+
+This collected information is placed to a HTTP GET Request string using the `_sprintf` call below and sent over to fukyu[.]jp/updata/TPDB[.]php (**!WARNING!**) via a HTTP request. The functionality on this PHP page must have been to collect the data sent via the GET request and store them in the database, so that the C2C server of the malware will have a record of all the infected hosts and the time at which they were infected.
