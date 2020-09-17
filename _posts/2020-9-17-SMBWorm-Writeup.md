@@ -57,7 +57,7 @@ Gets the Local IP of the system via two calls to `gethostname` and `gethostbynam
 
 This collected information is placed to a HTTP GET Request string using the `_sprintf` call below and sent over to fukyu[.]jp/updata/TPDB[.]php (**!WARNING!**) via a HTTP request. The functionality on this PHP page must have been to collect the data sent via the GET request and store them in the database, so that the C2C server of the malware will have a record of all the infected hosts and the time at which they were infected.
 
-![alt text]({{ site.baseurl }}/images/SMBWorm/12_send "{{ site.baseurl }}/images/SMBWorm/12_send")
+![alt text]({{ site.baseurl }}/images/SMBWorm/12_send.JPG "{{ site.baseurl }}/images/SMBWorm/12_send.JPG")
 
 After collecting the infected user data and sending it to the C2C server, there's a loop that iterates 100 times and each time it launches a new thread with the CRT thread creation function `beginthreadex`. The subroutine that is the entrypoint of these threads are sub_401870 as seen from the below screenshot. Therefore sub_401870 must be where the functionality of the spread of the worm is implemented.
 ![alt text]({{ site.baseurl }}/images/SMBWorm/15_beginthreadex.JPG "{{ site.baseurl }}/images/SMBWorm/15_beginthreadex.JPG")
