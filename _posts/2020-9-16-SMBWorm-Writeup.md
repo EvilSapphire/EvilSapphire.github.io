@@ -8,7 +8,7 @@ This is an unpacked sample which can directly be imported into IDA and the rever
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/getmodulefilename_1.JPG "{{ site.baseurl }}/images/SMBWorm/getmodulefilename_1.JPG")
 
-`WSAStartup` is the API to start up Windows Socket functionality. `GetModuleFileNameA` retrieves the name of the current executable, which is the malware sample, and stores the string to the memory offset in the PE labelled by `ExistingFileName` by IDA. In the following String assembly operations `repne movsd` and `repne movsb` are used to copy this `ExistingFileName` string to a local string on the stack labelled as `String` by IDA, the '/SYNC' is concatenated to `String`:
+`WSAStartup` is the API to start up Windows Socket functionality, which is a common API to call for any Windows executable implementing networking capabilities. `GetModuleFileNameA` retrieves the name of the current executable, which is the malware sample, and stores the string to the memory offset in the PE labelled by `ExistingFileName` by IDA. In the following String assembly operations `repne movsd` and `repne movsb` are used to copy this `ExistingFileName` string to a local string on the stack labelled as `String` by IDA, the '/SYNC' is concatenated to `String`:
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/existingfilename_strcpy_2.JPG "{{ site.baseurl }}/images/SMBWorm/existingfilename_strcpy_2.JPG")
 ![alt text]({{ site.baseurl }}/images/SMBWorm/strcat_sync_3.JPG "{{ site.baseurl }}/images/SMBWorm/strcat_sync_3.JPG")
