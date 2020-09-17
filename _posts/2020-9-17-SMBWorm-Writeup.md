@@ -23,11 +23,10 @@ After these there are two subsequent calls to sub_401EB0 and sub_401C40.
 ![alt text]({{ site.baseurl }}/images/SMBWorm/twocalls_5.JPG "{{ site.baseurl }}/images/SMBWorm/twocalls_5.JPG")
 
 A peek into sub_401eb0 gives us the first 3 calls to `GetSystemDirectoryA`, `strcat` and `lopen`.
+
 ![alt text]({{ site.baseurl }}/images/SMBWorm/sysdir_6.JPG "{{ site.baseurl }}/images/SMBWorm/sysdir_6.JPG")
 
-
-
-The malware stores the System Directory location (C:\Windows\System32) to a string, appends 'msupd.exe' to it checks if the 'C:\Windows\System32\msupd.exe' exists if by trying to open it with `lopen`. In case it doesn't, as the subsequent calls show us that
+The malware stores the System Directory location (C:\Windows\System32) to a string, appends 'msupd.exe' to it, checks if the 'C:\Windows\System32\msupd.exe' exists  by trying to open it with `lopen`. In case it doesn't, as the subsequent calls show us that
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/deleteurlcachedownload_7.JPG "{{ site.baseurl }}/images/SMBWorm/deleteurlcachedownload_7.JPG")
 
