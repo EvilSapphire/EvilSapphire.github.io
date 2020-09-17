@@ -25,6 +25,8 @@ After these there are two subsequent calls to sub_401EB0 and sub_401C40.
 A peek into sub_401eb0 gives us the first 3 calls to `GetSystemDirectoryA`, `strcat` and `lopen`.
 ![alt text]({{ site.baseurl }}/images/SMBWorm/sysdir_6.JPG "{{ site.baseurl }}/images/SMBWorm/sysdir_6.JPG")
 
+
+
 The malware stores the System Directory location (C:\Windows\System32) to a string, appends 'msupd.exe' to it checks if the 'C:\Windows\System32\msupd.exe' exists if by trying to open it with `lopen`. In case it doesn't, as the subsequent calls show us that
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/deleteurlcachedownload_7.JPG "{{ site.baseurl }}/images/SMBWorm/deleteurlcachedownload_7.JPG")
@@ -62,3 +64,16 @@ This collected information is placed to a HTTP GET Request string using the `_sp
 After collecting the infected user data and sending it to the C2C server, there's a loop that iterates 100 times and each time it launches a new thread with the CRT thread creation function `beginthreadex`. The subroutine that is the entrypoint of these threads are sub_401870 as seen from the below screenshot. Therefore sub_401870 must be where the functionality of the spread of the worm is implemented.
 ![alt text]({{ site.baseurl }}/images/SMBWorm/15_beginthreadex.JPG "{{ site.baseurl }}/images/SMBWorm/15_beginthreadex.JPG")
 
+In sub_401870 the first interesting code is this little do while loop that calls sub_401140 four times. 
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/16-randoutside.JPG "{{ site.baseurl }}/images/SMBWorm/16-randoutside.JPG") 
+
+This sub_401140 is nothing but a wrapper over a call to `rand` which generates a random byte DWORD value, shifts the value to the right by 1 byte and returns it to the loop.
+This DWORD is stored to a variable on the stack. This is done four times.
+![alt text]({{ site.baseurl }}/images/SMBWorm/17_randint.JPG "{{ site.baseurl }}/images/SMBWorm/17_randint.JPG")
+
+These 4 random DWORDs are then ANDed with 0xFF to extract the least significant byte and passed to a `_sprintf` call which takes in a format string of the form `"%d.%d.%d.%d"`. Which means these random bytes are placed in four octet IP format (e.g 8.9.10.11) in a string and this string is passed to sub_401150 the return value of which is checked to determine whether the loop will terminate. Taking a look at sub_401150 gives us:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/18-privateIPChecker.JPG "{{ site.baseurl }}/images/SMBWorm/18-privateIPChecker.JPG")
+
+This very obvious loop that checks for different octets in this IP string whether they are of the format '10.x.x.x' / '172.16-31.x.x' / '192.168.x.x'/ '127.x.x.x'. In case they are, the function returns a value of 1. If the function returns a non-zero value, the outer do-while loop does not terminate and generates a new set of random values. These are formats of private IP subnets, therefore it's clear sub_401150 is checking whether the randomly generated IP is a private IP and in case it is, it generates a new random IP. Therefore the worm will try to connect to public IPs only.
