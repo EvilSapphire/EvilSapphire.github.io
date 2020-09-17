@@ -31,7 +31,7 @@ The malware stores the System Directory location (C:\Windows\System32) to a stri
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/urldownloadtofile_8.JPG "{{ site.baseurl }}/images/SMBWorm/urldownloadtofile_8.JPG")
 
-it tries to download http://fukyu<.>jp/updata/ACCl3.jpg (**!WARNING!**) 's content to the C:\Windows\System32\msupd.exe file, and then tries to run the executable with a call to `CreateProcessA`.
+it tries to download http: //fukyu<.>jp/updata/ACCl3.jpg (**!WARNING!**) 's content to the C:\Windows\System32\msupd.exe file, and then tries to run the executable with a call to `CreateProcessA`.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/9_createprocess.JPG "{{ site.baseurl }}/images/SMBWorm/9_createprocess.JPG")
 
