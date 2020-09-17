@@ -66,7 +66,7 @@ After collecting the infected user data and sending it to the C2C server, there'
 
 In sub_401870 the first interesting code is this little do while loop that calls sub_401140 four times. 
 
-![alt text]({{ site.baseurl }}/images/SMBWorm/16-randoutside.JPG "{{ site.baseurl }}/images/SMBWorm/16-randoutside.JPG") 
+![alt text]({{ site.baseurl }}/images/SMBWorm/19-randoutside.JPG "{{ site.baseurl }}/images/SMBWorm/19-randoutside.JPG") 
 
 This sub_401140 is nothing but a wrapper over a call to `rand` which generates a random byte DWORD value, shifts the value to the right by 1 byte and returns it to the loop.
 This DWORD is stored to a variable on the stack. This is done four times.
@@ -76,4 +76,20 @@ These 4 random DWORDs are then ANDed with 0xFF to extract the least significant 
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/18-privateIPChecker.JPG "{{ site.baseurl }}/images/SMBWorm/18-privateIPChecker.JPG")
 
-This very obvious loop that checks for different octets in this IP string whether they are of the format '10.x.x.x' / '172.16-31.x.x' / '192.168.x.x'/ '127.x.x.x'. In case they are, the function returns a value of 1. If the function returns a non-zero value, the outer do-while loop does not terminate and generates a new set of random values. These are formats of private IP subnets, therefore it's clear sub_401150 is checking whether the randomly generated IP is a private IP and in case it is, it generates a new random IP. Therefore the worm will try to connect to public IPs only.
+This very obvious branching logic that checks for different octets in this IP string whether they are of the format '10.x.x.x' / '172.16-31.x.x' / '192.168.x.x'/ '127.x.x.x'. In case they are, the function returns a value of 1. If the function returns a non-zero value, the outer do-while loop does not terminate and generates a new set of random values. These are formats of private IP subnets, therefore it's clear sub_401150 is checking whether the randomly generated IP is a private IP and in case it is, it generates a new random IP. Therefore the worm will try to connect to public IPs only.
+
+After this Public IP Check passes, there's another call to sub_4011F0 with the public IP string as argument, the return value of which is also checked to see if the loop terminates. Peeking into this subroutine gives us:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/20_telnet.JPG "{{ site.baseurl }}/images/SMBWorm/20_telnet.JPG")
+
+In this subroutine first there's a call to `socket` which creates a TCP socket, then this socket is set to non-blocking mode via the call to `ioctlsocket`. The handle to this socket is passed to a `connect` call which also takes in the argument of a `sockaddr` structure to which the IP value fed is the randomly generated public IP string, and the port is set to be 445. Therefore this `connect` call initiates a TCP handshake towards <Public IP>:445. The call to `select` WINAPI down below checks the writability of this socket and if this call succeeds, the function returns 1 and the outer loop terminates. So basically this subroutines initiaties a TCP connection towards the Public IP on port 445 and checks if the connection attempt has completed and if the socket is writable. Therefore we can assume data will be sent towards the public IP on port 445. We are seeing the first signs that this malware is actually an SMB worm.
+  
+After this there's a large do while loop:
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/21_for1.JPG "{{ site.baseurl }}/images/SMBWorm/21_for1.JPG")
+![alt text]({{ site.baseurl }}/images/SMBWorm/22_for2.JPG "{{ site.baseurl }}/images/SMBWorm/22_for2.JPG")
+
+The assembly may not look that readable, but what this loop is doing is that it removes the last octet of the generated public IP string, appends 1 to it, and passes the string to the same sub_4011F0 connectibility check subroutine described above. If the connectivity check passes, the IP is formatted into a string format '\\<public-ip>' using `sprintf` and passed to sub_4012B0. Then the last octet is set 2 and the same thing repeats, and the loop continues until the last octet is less than 254. Therefore the entire /24 subnet of the randomly generated public IP is checked for socket connectivity and subsequently the '\\<public-IP>' string is passed to sub_4012B0. This \\<public-IP> is obviously the format used to access Windows SMB shares, so sub_4012B0 must be using this string to enumerate and possible send data to the Windows SMB share for which the connectivity check passed. sub_4012B0 is actually the meat of the worm functionality, and therefore its discussion warrants a separate post. The first part of the analysis ends here, if you read this, I would happy to know your thoughts if you would spare some of your time. I can be reached at github or roysomik@yahoo.com/ evilsapphire_s@yahoo.in. Thank you for reading!
+
+
+  
