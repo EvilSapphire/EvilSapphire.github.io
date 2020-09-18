@@ -15,6 +15,9 @@ A guy who likes to fiddle with OS Userland internals. Professionally coming from
 
 [roysomik@yahoo.com](mailto:roysomik@yahoo.com)
 
+### Github Profile
+
+https://github.com/EvilSapphire
 
 ### Location
 
