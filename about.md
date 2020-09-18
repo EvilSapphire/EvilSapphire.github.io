@@ -21,7 +21,6 @@ A guy who likes to fiddle with OS Userland internals. Professionally coming from
 
 ### Medium Profile
 
-[https://medium.com/@evilsapphire_s](https://medium.com/@evilsapphire_s) 
 
 ### Location
 
