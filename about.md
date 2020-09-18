@@ -19,6 +19,10 @@ A guy who likes to fiddle with OS Userland internals. Professionally coming from
 
 [https://github.com/EvilSapphire](https://github.com/EvilSapphire)
 
+## Medium Profile
+
+[https://medium.com/@evilsapphire_s](https://medium.com/@evilsapphire_s)
+
 ### Location
 
 India
