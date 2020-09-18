@@ -17,7 +17,7 @@ A guy who likes to fiddle with OS Userland internals. Professionally coming from
 
 ### Github Profile
 
-https://github.com/EvilSapphire
+[https://github.com/EvilSapphire](https://github.com/EvilSapphire)
 
 ### Location
 
