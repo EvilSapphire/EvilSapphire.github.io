@@ -13,4 +13,9 @@ A guy who likes to fiddle with OS Userland internals. Professionally coming from
 -->
 ### Contact me
 
-[evilsapphire_s@yahoo.com](mailto:evilsapphire_s@yahoo.com)
+[roysomik@yahoo.com](mailto:roysomik@yahoo.com)
+
+
+### Location
+
+India
