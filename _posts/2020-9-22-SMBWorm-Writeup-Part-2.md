@@ -33,6 +33,25 @@ If the call to `NetUserEnum` succeeds, the pointer to this array of `USER_INFO_0
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/27_401430loop.JPG "{{ site.baseurl }}/images/SMBWorm/27_401430loop.JPG")
  
-Clearly, in each iteration of the loop, the `bufptr->usri0_name` string is retrieved and passed to `sub_401430` function. `sub_401430` also takes in the '\\\\\<Public-IP>' string as an argument. Therefore what 
+Clearly, in each iteration of the loop, the `bufptr->usri0_name` string is retrieved and passed to `sub_401430` function. `sub_401430` also takes in the '\\\\\<Public-IP>' string as an argument. Therefore in summary what `sub_4012B0` does is that it enumerates the public IP for all configured user accounts, and passes each of those user account to `sub_401430` for further processing. Then we need to take a look at `sub_401430`.
+
+#### sub_401430:
+
+`sub_401430` is a fairly small function where first the memory address 0x408030 is moved into the esi register.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/28_401490loop.JPG ""{{ site.baseurl }}/images/SMBWorm/28_401490loop.JPG)
+
+If we take a look at the content at this offset in IDA we find what readily appears to be a list of commonly used passwords.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/29_passwordlist.JPG "{{ site.baseurl }}/images/SMBWorm/29_passwordlist.JPG")
+
+In the do while loop starting from address 0x40145C, clearly each of these passwords are being read, and then passed to a function `sub_401490` along with the '\\\\\<Public-IP>' string and the username that came as the argument to `sub_401430`. Therefore `sub_401430` reads the entire commonly used password list and passes all the passwords for each username to `sub_401490`. Therefore `sub_401490` must be using these username/password pair and trying them to gain access to the server somehow. Let us take a look at it next.
+
+#### sub_401490:
+
+
+
+
+
 
  
