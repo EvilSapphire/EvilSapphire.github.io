@@ -8,6 +8,7 @@ The first thing `sub_4012B0` does is that it appends the string 'ipc$' after the
 ![alt text]({{ site.baseurl }}/images/SMBWorm/23_ipcstr.JPG "{{ site.baseurl }}/images/SMBWorm/23_ipcstr.JPG")
 The IPC(Inter-process communication) share is a null session connection that exists on Windows that lets anonymous users enumerate some limited properties of the shared machine. From the MSDN documentation:
 >The IPC$ share is also known as a null session connection. By using this session, Windows lets anonymous users perform certain activities, such as enumerating the names of domain >accounts and network shares. The IPC$ share is created by the Windows Server service. This special share exists to allow for subsequent named pipe connections to the server.
+
 Therefore the function checks whether a connection to the null session on the Public IP can be made. In case the call to `WNetAddConnection2A` fails with an error code, the function exits.
 ![alt text]({{ site.baseurl }}/images/SMBWorm/24_ipcwnet.JPG "{{ site.baseurl }}/images/SMBWorm/24_ipcwnet.JPG")
 If call to `WNetAddConnection2A` succeeds, the '\\\\\<Public-IP>' string is passed to a `NetUserEnum` call. The `NetUserEnum` API as its name indicates enumerates all the user accounts on a server and returns the information to an array of `USER_INFO` structure (`bufptr` in the arguments labelled by IDA).
