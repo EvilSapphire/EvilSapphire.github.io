@@ -4,6 +4,8 @@ title: SMB Worm Writeup (Part 2)
 ---
 
 Welcome to the part 2 of reversing an SMB Worm. In [part 1](https://evilsapphire.github.io/SMBWorm-Writeup-Part-1/) we observed the worm generating random Public IPs, then checking whether data can be sent to over to the Public IP via calls to `connect` and `select` WINAPIs, and if the check succeded it generated the SMB Share format of the Public IP by appending '\\\\' before the IP string and passed this '\\\\\<Public-IP>' string to `sub_4012B0`. In this post we are going to take a look at how exactly the worm is propagating itself over SMB connections.
+
+<u>sub_4012B0</u>
 The first thing `sub_4012B0` does is that it appends the string 'ipc$' after the '\\\\\<Public-IP>' string via a call to `sprintf`. This string is passed to the `WNetAddConnection2A` API via setting the IPC string to the `NetResource.lpRemoteName` attribute. Therefore this initiates a connection to the IPC SMB session of the server with the public IP.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/23_ipcstr.JPG "{{ site.baseurl }}/images/SMBWorm/23_ipcstr.JPG")
@@ -24,12 +26,12 @@ typedef struct _USER_INFO_0 {
   LPWSTR usri0_name;
 } USER_INFO_0, *PUSER_INFO_0, *LPUSER_INFO_0;
 ```
-Therefore this `NetUserEnum` API will return an array of structures that contains the name of all the users in the server in the `usri0_name` member of the structure.
+Therefore this `NetUserEnum` API will return an array of structures that contains the name of the users in the server in the `usri0_name` member of the structure.
 If the call to `NetUserEnum` succeeds, the pointer to this array of `USER_INFO_0` structures `bufptr` is moved to the `esi` register
 ![alt text]({{ site.baseurl }}/images/SMBWorm/26-bufptrmove.JPG "{{ site.baseurl }}/images/SMBWorm/26-bufptrmove.JPG"), and then each of these `USER_INFO_0` structure is enumerated inside a for loop until a counter reaches the number of entries read from the server which is also returned by the `NetUserEnum` API.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/27_401430loop.JPG "{{ site.baseurl }}/images/SMBWorm/27_401430loop.JPG")
  
-
+Clearly, in each iteration of the loop, the `bufptr->usri0_name` string is retrieved and passed to `sub_401430` function. `sub_401430` also takes in the '\\\\\<Public-IP>' string as an argument. Therefore what 
 
  
