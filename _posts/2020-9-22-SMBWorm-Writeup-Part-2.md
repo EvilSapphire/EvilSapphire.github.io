@@ -5,7 +5,7 @@ title: SMB Worm Writeup (Part 2)
 
 Welcome to the part 2 of reversing an SMB Worm. In [part 1](https://evilsapphire.github.io/SMBWorm-Writeup-Part-1/) we observed the worm generating random Public IPs, then checking whether data can be sent to over to the Public IP via calls to `connect` and `select` WINAPIs, and if the check succeded it generated the SMB Share format of the Public IP by appending '\\\\' before the IP string and passed this '\\\\\<Public-IP>' string to `sub_4012B0`. In this post we are going to take a look at how exactly the worm is propagating itself over SMB connections.
 
-##sub_4012B0:
+## sub_4012B0:
 
 The first thing `sub_4012B0` does is that it appends the string 'ipc$' after the '\\\\\<Public-IP>' string via a call to `sprintf`. This string is passed to the `WNetAddConnection2A` API via setting the IPC string to the `NetResource.lpRemoteName` attribute. Therefore this initiates a connection to the IPC SMB session of the server with the public IP.
 
