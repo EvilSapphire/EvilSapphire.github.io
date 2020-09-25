@@ -57,18 +57,18 @@ Inside `sub_401490`, we see the access gaining attempt right away, where there's
 If this call to `WNetAddConnection2A` succeeds, which means the worm has successfully authenticated and gained access to the server with this username/password combination, a string is initialised with the value '\\\\\<Public-IP>\\\\admin$\\\\system32\\\\dnsapi.exe'.   
 ![alt text]({{ site.baseurl }}/images/SMBWorm/31_SysdirDNSApiString.JPG "{{ site.baseurl }}/images/SMBWorm/31_SysdirDNSApiString.JPG")
 
-Next there is a call to sub_401A70 with pointer to a local string passed to it as the parameter. 
+Next there's a call to `CopyFileA` two which the arguments passed are the string holding the '\\\\\<Public-IP>\\\\admin$\\\\system32\\\\dnsapi.exe' value and the `ExistingFileName` string to which the current executable fully qualified path name was placed back in the `WinMain` function (refer to part 1). The '\\\\\<Public-IP>\\\\admin$' part accesses the administrator share of the remote server, which basically resolves to the 'C:\\Windows' folder of the Remote server, therefore the `CopyFileA` call copies the content of the currently executing malware to a file called dnsapi.exe existing on the C:\\Windows\\system32 folder of the Remote Server. This is basically how the worm propagates itself.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/33_copyfile.JPG "{{ site.baseurl }}/images/SMBWorm/33_copyfile.JPG")
+
+After the malware's content has been successfully copied over to the remote server, a call to sub_401A70 is made with pointer to a local string passed to it as the parameter. 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/32_infectedtime.JPG "{{ site.baseurl }}/images/SMBWorm/32_infectedtime.JPG")
 
 Taking a look at the sub_401A70 we find that it gets the System Local time via a `GetLocalTime` call and inserts the hour, minute, second values to the argument string via a call to `sprintf`. Therefore `sub_401A70` basically retrieves the time at which it has successfully been able to login to the remote server to a local string on the stack.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/35_401a70.JPG "{{ site.baseurl }}/images/SMBWorm/35_401a70.JPG")
 
-Next there's a call to `CopyFileA` two which the arguments passed are the string holding the '\\\\\<Public-IP>\\\\admin$\\\\system32\\\\dnsapi.exe' value and the `ExistingFileName` string to which the current executable fully qualified path name was placed back in the `WinMain` function (refer to part 1). The '\\\\\<Public-IP>\\\\admin$' part accesses the administrator share of the remote server, which basically resolves to the 'C:\\Windows' folder of the Remote server, therefore the `CopyFileA` call copies the content of the currently executing malware to a file called dnsapi.exe existing on the C:\\Windows\\system32 folder of the Remote Server. This is basically how the worm propagates itself.
-
-![alt text]({{ site.baseurl }}/images/SMBWorm/33_copyfile.JPG "{{ site.baseurl }}/images/SMBWorm/33_copyfile.JPG")
-
-After the malware's content has been successfully copied over to the remote server, a call to `sub_401AE0` is made, and the arguments passed to it are the string containing the local time retrieved by `sub_401A70` above, a string 'cp', the Public IP of the remote server, and the Username and Password that were successfully authenticated on remote server. 
+Next, a call to `sub_401AE0` is made, and the arguments passed to it are the string containing the local time retrieved by `sub_401A70` above, a string 'cp', the Public IP of the remote server, and the Username and Password that were successfully authenticated on remote server. 
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/40_c2ccopyok.JPG "![alt text]({{ site.baseurl }}/images/SMBWorm/40_c2ccopyok.JPG")
 
