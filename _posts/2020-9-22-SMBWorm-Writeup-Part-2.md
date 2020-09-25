@@ -75,7 +75,8 @@ This `BufferPtr` pointer is moved to `ecx` as per the following screenshot, and 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/37_bufferptrNetRemoteTOD.JPG "{{ site.baseurl }}/images/SMBWorm/37_bufferptrNetRemoteTOD.JPG")
 
 Taking a look at the `TIME_OF_DAY_INFO` struct definition:
-`typedef struct _TIME_OF_DAY_INFO {
+```
+typedef struct _TIME_OF_DAY_INFO {
   DWORD tod_elapsedt;
   DWORD tod_msecs;
   DWORD tod_hours;
@@ -89,7 +90,7 @@ Taking a look at the `TIME_OF_DAY_INFO` struct definition:
   DWORD tod_year;
   DWORD tod_weekday;
 } TIME_OF_DAY_INFO, *PTIME_OF_DAY_INFO, *LPTIME_OF_DAY_INFO;
-`
+```
 It is clear the `tod_minutes`,  `tod_timezone` and `tod_hours` values are being moved to these register. Then some assembly mathematical operation is performed to calculate the value of `abs(BufferPtr->tod_timezone)+ 60 * BufferPtr->tod_hours+ BufferPtr->tod_mins+ 2` and place it into the `eax` register. This time value is clearly 2 minutes ahead of the current time of the Remote Server.
 ![alt text]({{ site.baseurl }}/images/SMBWorm/38_bufferptrcalc.JPG "{{ site.baseurl }}/images/SMBWorm/38_bufferptrcalc.JPG")
 
