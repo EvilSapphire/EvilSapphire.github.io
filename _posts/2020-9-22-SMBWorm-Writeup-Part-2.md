@@ -109,11 +109,13 @@ An `AT_INFO` structure is then initialised on the stack. The calculated time is 
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/39_netschedulejobadd.JPG "{{ site.baseurl }}/images/SMBWorm/39_netschedulejobadd.JPG")
 
+In case the call to `NetScheduleJobAdd` fails, the dnsapi.exe on the remote server is deleted via a call to `DeleteFileA` 
+![alt text]({{ site.baseurl }}/images/SMBWorm/43_deletefilea.JPG "{{ site.baseurl }}/images/SMBWorm/43_deletefilea.JPG")
 
+In case the call to `NetScheduleJobAdd` succeeds and the execution of the worm is successfully scheduled on the remote server, we see another call to `sub_401AE0` as above when the copying action was completed, but this time the time at which the scheduling was completed is passed as an argument with the string 'at', which makes it clear this call basically informs the C2C that the task of scheduling the execution of the worm on the remote server has successfully completed as well.
+![alt text]({{ site.baseurl }}/images/SMBWorm/44_taskok.JPG "{{ site.baseurl }}/images/SMBWorm/44_taskok.JPG")
 
-  
+And this pretty much concludes the analysis of the inner-workings of this worm. In a nutshell, first the worm creates a entry in the HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run Registry location with the name PHIME2008 and with fully qualified current executable name as its value, which makes the malware persistent by making it a startup entry in the infected machine. Then it downloads a PE file to the infected machine's System32 folder named as msupd.exe which is likely the same worm sample and then runs it. The worm then collects some data about the infected local machine and sends the data over to its C2C server. It then generates random Public IPs, sees if a TCP connection to the remote public IP on port 445 can be made, and in case the connection succeeds again checks if the IPC$ SMB session on the remote IP can be accessed. In case it can be the worm calls `NetUserEnum` to enumerate the user list on the remote server, then for each user a commonly used password list is read and each of the username/password combination is tried for authentication. In case a username/password combination succeeds for authentication, the malware's content is copied to C:\\Windows\\System32\\dnsapi.exe file on the remote server. The C2C is informed about the successful copy action, then dnsapi.exe on the remote server is scheduled to run 2 minutes after the current time of the remote server. The C2C is also informed about the successful scheduling action. Thereby propagation of the worm over SMB shares is achieved.
 
-
-
-
+That's it for this malware sample. Please let me know what you think and how the write-up can be improved. I can be contacted on the e-mails roysomik@yahoo.com/ evilsapphire_s@yahoo.in. For now, mata ne!
  
