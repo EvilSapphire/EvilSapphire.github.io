@@ -54,7 +54,48 @@ Inside `sub_401490`, we see the access gaining attempt right away, where there's
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/30_unamepassconnect.JPG "{{ site.baseurl }}/images/SMBWorm/30_unamepassconnect.JPG").
 
-If this call to `WNetAddConnection2A` succeeds a string is initialised with the 
+If this call to `WNetAddConnection2A` succeeds, which means the worm has successfully authenticated and gained access to the server with this username/password combination, a string is initialised with the value '\\\\\<Public-IP>\\\\admin$\\\\system32\\\\dnsapi.exe'.   
+![alt text]({{ site.baseurl }}/images/SMBWorm/31_SysdirDNSApiString.JPG "{{ site.baseurl }}/images/SMBWorm/31_SysdirDNSApiString.JPG")
+
+Next there is a call to sub_401A70 with pointer to a local string passed to it as the parameter. 
+![alt text]({{ site.baseurl }}/images/SMBWorm/32_infectedtime.JPG "{{ site.baseurl }}/images/SMBWorm/32_infectedtime.JPG")
+
+Taking a look at the sub_401A70 we find that it gets the System Local time via a `GetLocalTime` call and inserts the hour, minute, second values to the argument string via a call to `sprintf`. Therefore `sub_401A70` basically retrieves the time at which it has successfully been able to login to the remote server to a local string on the stack.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/35_401a70.JPG "{{ site.baseurl }}/images/SMBWorm/35_401a70.JPG")
+
+Next there's a call to `CopyFileA` two which the arguments passed are the string holding the '\\\\\<Public-IP>\\\\admin$\\\\system32\\\\dnsapi.exe' value and the `ExistingFileName` string to which the current executable fully qualified path name was placed back in the `WinMain` function (refer to part 1). The '\\\\\<Public-IP>\\\\admin$' part accesses the administrator share of the remote server, which basically resolves to the 'C:\\Windows' folder of the Remote server, therefore the `CopyFileA` call copies the content of the currently executing malware to a file called dnsapi.exe existing on the C:\\Windows\\system32 folder of the Remote Server. This is basically how the worm propagates itself.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/33_copyfile.JPG "{{ site.baseurl }}/images/SMBWorm/33_copyfile.JPG")
+
+After the malware's content has been copied over to the remote server, there's a call to `NetRemoteTOD` API that retrieves the local time of the Remote Server to a `TIME_OF_DAY_INFO` structure pointed to by `BufferPtr`. 
+![alt text]({{ site.baseurl }}/images/SMBWorm/36_NetremoteTOD.JPG "{{ site.baseurl }}/images/SMBWorm/36_NetremoteTOD.JPG")
+
+This `BufferPtr` pointer is moved to `ecx` as per the following screenshot, and then different members residing in different offset in this structure is moved to the registers `edi`, `eax` and `ecx`.
+![alt text]({{ site.baseurl }}/images/SMBWorm/37_bufferptrNetRemoteTOD.JPG "{{ site.baseurl }}/images/SMBWorm/37_bufferptrNetRemoteTOD.JPG")
+
+Taking a look at the `TIME_OF_DAY_INFO` struct definition:
+`typedef struct _TIME_OF_DAY_INFO {
+  DWORD tod_elapsedt;
+  DWORD tod_msecs;
+  DWORD tod_hours;
+  DWORD tod_mins;
+  DWORD tod_secs;
+  DWORD tod_hunds;
+  LONG  tod_timezone;
+  DWORD tod_tinterval;
+  DWORD tod_day;
+  DWORD tod_month;
+  DWORD tod_year;
+  DWORD tod_weekday;
+} TIME_OF_DAY_INFO, *PTIME_OF_DAY_INFO, *LPTIME_OF_DAY_INFO;
+`
+It is clear the `tod_minutes`,  `tod_timezone` and `tod_hours` values are being moved to these register. Then some assembly mathematical operation is performed to calculate the value of `abs(BufferPtr->tod_timezone)+ 60 * BufferPtr->tod_hours+ BufferPtr->tod_mins+ 2` and place it into the `eax` register. This time value is clearly 2 minutes ahead of the current time of the Remote Server.
+![alt text]({{ site.baseurl }}/images/SMBWorm/38_bufferptrcalc.JPG "{{ site.baseurl }}/images/SMBWorm/38_bufferptrcalc.JPG")
+
+An `AT_INFO` structure is then initialised on the stack. The calculated time is passed to the `JobTime` member of the struct, and a string `dnsapi.exe` is passed to its `Command` member. This `AT_INFO` struct is then passed to a `NetScheduleJobAdd` API which schedules the dnsapi.exe file on the remote server to run in the 2 minutes after the remote server's current time. As seen earlier the malware's code has already been copied to the dnsapi.exe file, therefore the malware is scheduled to run on the server after 2 minutes. This is clearly worm like behaviour where it copies itself onto a remote server and schedules itself to run after a fixed time.
+
+![alt text]({{ site.baseurl }}/images/SMBWorm/39_netschedulejobadd.JPG "{{ site.baseurl }}/images/SMBWorm/39_netschedulejobadd.JPG)
 
 
 
