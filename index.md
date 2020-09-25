@@ -3,7 +3,7 @@ layout: default
 title: Welcome Page
 ---
 
-## Welcome, travellers, to the cyber corner of a newbie Reverse Engineer. Here be good ale, and dirty analyses of binaries that I find interesting!
+## Welcome, travellers, to the cyber corner of a Reverse Engineer. Here be good ale, and dirty analyses of binaries that I find interesting!
 
 Here are the entries so far: 
 
