@@ -13,6 +13,7 @@ The first thing `sub_4012B0` does is that it appends the string 'ipc$' after the
 
 The IPC(Inter-process communication) share is a null session connection that exists on Windows that lets anonymous users enumerate some limited properties of the shared machine. From the MSDN documentation:
 >The IPC$ share is also known as a null session connection. By using this session, Windows lets anonymous users perform certain activities, such as enumerating the names of domain accounts and network shares. The IPC$ share is created by the Windows Server service. This special share exists to allow for subsequent named pipe connections to the server.
+
 Therefore the function checks whether a connection to the null session on the Public IP can be made, and therefore server properties over the SMB connection can be enumerated. In case the call to `WNetAddConnection2A` fails with an error code, the function exits.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/24_ipcwnet.JPG "{{ site.baseurl }}/images/SMBWorm/24_ipcwnet.JPG")
@@ -21,7 +22,7 @@ If call to `WNetAddConnection2A` succeeds, the '\\\\\<Public-IP>' string is pass
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/25_netuserenum.JPG "{{ site.baseurl }}/images/SMBWorm/25_netuserenum.JPG")
 
-In this case, the `level` argument passed to `NetUserEnum` is 0, therefore the returned structs will be `USER_INFO_0`, which has the following structure definition:
+In this case, the `level` argument passed to `NetUserEnum` is 0, therefore the returned `bufptr` will be in the form of the structure `USER_INFO_0`, which has the following struct definition:
 ```
 typedef struct _USER_INFO_0 {
   LPWSTR usri0_name;
@@ -39,7 +40,7 @@ Clearly, in each iteration of the loop, the `bufptr->usri0_name` string is retri
 
 `sub_401430` is a fairly small function where first the memory address 0x408030 is moved into the esi register.
 
-![alt text]({{ site.baseurl }}/images/SMBWorm/28_401490loop.JPG ""{{ site.baseurl }}/images/SMBWorm/28_401490loop.JPG)
+![alt text]({{ site.baseurl }}/images/SMBWorm/28_401490loop.JPG "{{ site.baseurl }}/images/SMBWorm/28_401490loop.JPG")
 
 If we take a look at the content at this offset in IDA we find what readily appears to be a list of commonly used passwords.
 
@@ -49,7 +50,15 @@ In the do while loop starting from address 0x40145C, clearly each of these passw
 
 #### sub_401490:
 
+Inside `sub_401490`, we see the access gaining attempt right away, where there's a call to `WNetAddConnection2A` with the `lpUserName` and `lpPassword` arguments set to the Username and Password passed to `sub_401490`.
 
+![alt text]({{ site.baseurl }}/images/SMBWorm/30_unamepassconnect.JPG "{{ site.baseurl }}/images/SMBWorm/30_unamepassconnect.JPG").
+
+If this call to `WNetAddConnection2A` succeeds a string is initialised with the 
+
+
+
+  
 
 
 
