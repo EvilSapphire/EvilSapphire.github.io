@@ -64,7 +64,7 @@ Next there's a call to `CopyFileA` two which the arguments passed are the string
 After the malware's content has been successfully copied over to the remote server, a call to sub_401A70 is made with pointer to a local string passed to it as the parameter. 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/32_infectedtime.JPG "{{ site.baseurl }}/images/SMBWorm/32_infectedtime.JPG")
 
-Taking a look at the sub_401A70 we find that it gets the System Local time via a `GetLocalTime` call and inserts the hour, minute, second values to the argument string via a call to `sprintf`. Therefore `sub_401A70` basically retrieves the time at which it has successfully been able to login to the remote server to a local string on the stack.
+Taking a look at the sub_401A70 we find that it gets the System Local time via a `GetLocalTime` call and inserts the hour, minute, second values to the argument string via a call to `sprintf`. Therefore `sub_401A70` basically retrieves the time at which it has successfully been able to copy the file to the remote server to a local string on the stack.
 
 ![alt text]({{ site.baseurl }}/images/SMBWorm/35_401a70.JPG "{{ site.baseurl }}/images/SMBWorm/35_401a70.JPG")
 
