@@ -3,7 +3,7 @@ layout: post
 title: Write-up on Reversing an SMB Worm (Part 2)
 ---
 
-Welcome to the part 2 of the write-up of reversing an SMB Worm found in fabrimagic72's GitHub Malware samples repo. In [part 1](https://evilsapphire.github.io/Reversing-an-SMBWorm-Part-1/) we observed the worm generating random Public IPs, then checking whether data can be sent to over to the Public IP via calls to `connect` and `select` WINAPIs, and if the check succeded it generated the SMB Share format of the Public IP by appending '\\\\' before the IP string and passed this '\\\\\<Public-IP>' string to `sub_4012B0`. In this post we are going to take a look at how exactly the worm is propagating itself over SMB connections.
+Welcome to the part 2 of the write-up of reversing an SMB Worm found in fabrimagic72's GitHub [Malware samples repo](https://github.com/fabrimagic72/malware-samples). In [part 1](https://evilsapphire.github.io/Reversing-an-SMBWorm-Part-1/) we observed the worm generating random Public IPs, then checking whether data can be sent to over to the Public IP via calls to `connect` and `select` WINAPIs, and if the check succeded it generated the SMB Share format of the Public IP by appending '\\\\' before the IP string and passed this '\\\\\<Public-IP>' string to `sub_4012B0`. In this post we are going to take a look at how exactly the worm is propagating itself over SMB connections.
 
 #### sub_4012B0:
 
