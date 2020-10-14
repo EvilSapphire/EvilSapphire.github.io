@@ -132,7 +132,7 @@ into the Foreground IE window is passed to `strstr` function which searches a sm
 the keystrokes of the user if they have the Barclays login page open on their browser.
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/32_hreleaseskip.JPG "{{ site.baseurl }}/images/CredentialsStealer/32_hreleaseskip.JPG")
 
-Then the ForegroundWindow Title retrieved earlier is passed to a subroutine I labelled as `IWebBrowser2StorerGlobalCOMFlagSetter` (which basically describes all that it is doing).
+Then the ForegroundWindow Title Text retrieved earlier is passed to a subroutine I labelled as `IWebBrowser2StorerGlobalCOMFlagSetter` (which basically describes all that it is doing).
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG "{{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG")
 
