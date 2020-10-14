@@ -3,7 +3,7 @@ layout: post
 title: Reversing a Barclays Credentials Stealer (Part 1)
 ---
 
-I recently had my hands on a malware sample that came with a malicious e-mail attachment. Upon reversing it I found out it employed various facets of Windows Programming to steal Barclay's Bank credentials from an unsuspecting user. It took advantage of Windows GUI programming flexibility to insert a Window inside the clipboard chain to log user clipboard data. It also extensively used the COM framework to determine the user behaviour and accordingly steal user’s data. The malware definitely warrants a entry in this personal Malware Analysis write-up blog.
+I recently had my hands on a malware sample that came with a malicious e-mail attachment. Upon reversing it I found out it employed various facets of Windows Programming to steal Barclay's Bank credentials from an unsuspecting user. It took advantage of Windows GUI programming flexibility to insert a Window inside the clipboard viewer chain to log user clipboard data. It also extensively used the COM framework to determine the user behaviour and accordingly steal user’s data. The malware definitely warrants a entry in this Malware Analysis write-up blog.
 
 The file that I renamed as 'mal.fil' is a simple PE file that can be opened with a PE viewer tool like PE Bear.
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/1_file.JPG "{{ site.baseurl }}/images/CredentialsStealer/1_file.JPG")
@@ -96,6 +96,31 @@ Every keystroke by the user thus is converted to its corresponding character and
 
 Taking a look at h_Release we see it’s just a wrapper around UnhookWindowsHookEx which unhooks the procedure hooked by `h_Init`.
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/25_hrelease.JPG "{{ site.baseurl }}/images/CredentialsStealer/25_hrelease.JPG")
+
+Going back to the malware, value of a Registry HKEY_LOCAL_MACHINE\Software\SARS is checked and in case it doesn’t exist infected machine’s IP is collected via calls to `gethostname` and `gethostbyname`, appended to some data in mail format and sent to smtp.mail.ru (the
+malware’s C2C) which right now doesn’t have a valid DNS record.
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/26_localIPcollector.JPG "{{ site.baseurl }}/images/CredentialsStealer/26_localIPcollector.JPG")
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/27_smtp.JPG "{{ site.baseurl }}/images/CredentialsStealer/27_smtp.JPG")
+
+Once this mail has been sent the the Registry HKEY_LOCAL_MACHINE\Software\SARS isadded and set the value to ‘start_bank’. So if the malware has run once in a machine this initial mail containing the local IP of the machine will be sent only once. This subroutine basically informs the Malware C2C of the IP it has successfully infected.
+
+Now we enter the interesting part of the malware code. It initiates an infinite loop and first we see calls to:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/28_barclaysIE.JPG "{{ site.baseurl }}/images/CredentialsStealer/28_barclaysIE.JPG")
+
+`GetForegroundWindow` which retrieves handle to the topmost/foreground window and retrieves the Text at the foreground window title bar via a call to `GetWindowTextA`. Then it calls `FindWindowA` which returns a handle if the passed Classname and WindowName (foreground window Title text in this case) matches. The lpClassName passed to this call is “IEFrame” which is the predefined classname for Internet Explorer. So this `FindWindowA` call will only return a valid handle if the foreground window the user has open is a Internet Explorer Window. Then this handle is passed to a subroutine I labelled as `BarclaysIEChecker`. Peeking into this subroutine gives us:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/29_findwindowchain1.JPG "{{ site.baseurl }}/images/CredentialsStealer/29_findwindowchain1.JPG")
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/30_Findwindowchain2.JPG "{{ site.baseurl }}/images/CredentialsStealer/30_Findwindowchain2.JPG")
+
+It enumerates the Internet Explorer window open in the foreground by its child windows via WorkerA->rebarwindows32->comboboxex32->combobox->Edit, which returns a handle to the
+address bar of the IE window. If a valid handle to the Address bar is retrieved:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/31_sendmessageStrstr.JPG "{{ site.baseurl }}/images/CredentialsStealer/31_sendmessageStrstr.JPG")
+
+A Thread Message to the caller/creator thread of the address bar window is sent with `Msg` parameter set to `WM_GETTEXT`. This will instruct the caller/creator thread of the address bar window to return the Text entered by the user in the address bar in the `lParam` pointer. This `lParam` string which now contains the domain name the user entered
+into the Foreground IE window is passed to `strstr` function which searches a smaller substring in a larger string. The substring to be searched in the address bar text is
+“ibank.barclays.co.uk/fp/” which is the index/login page of the barclays bank (although at the time of this write up this address is re-directed to a different domain address but it still contains the login functionality). If the substring is found which means the user has the Barclays bank login page open in their browser which is also currently  the foreground window so it is likely the user is entering their credentials into the page, the pointer to the address bar string is returned by the `BarclaysIEChecker` function. Then a call to `h_Release` is skipped if the Text inside the Address Bar contains the Barclays domain, which tells us the malware is interested in hooking and logging
+the keystrokes of the user if they have the Barclays login page open on their browser.
 
 
 (entry in progress)
