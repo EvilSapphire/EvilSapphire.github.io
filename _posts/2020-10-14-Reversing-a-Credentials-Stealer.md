@@ -50,7 +50,7 @@ A Window being registered, created and its Message Loop. The Callback Window Pro
 Taking a look inside this function:
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/13_WndprocIntrnl.JPG "{{ site.baseurl }}/images/CredentialsStealer/13_WndprocIntrnl.JPG")
 
-We see that when this WndProc receives the WM_CREATE notification which is during the Window Creation, It calls the `SetClipboardViewer` API. According to MSDN: 
+We see that when this Window Procedure receives the `WM_CREATE` notification which is during the Window Creation, It calls the `SetClipboardViewer` API. According to MSDN: 
 >SetClipboardViewer Adds the specified window to the chain of clipboard viewers. Clipboard viewer windows receive a WM_DRAWCLIPBOARD message whenever the content of the clipboard changes.
 
 Therefore upon creation this window is inserted in the clipboard viewer chain.
@@ -75,4 +75,27 @@ unpacked PE there. Then:
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/19_loadlibGetProc.JPG "{{ site.baseurl }}/images/CredentialsStealer/19_loadlibGetProc.JPG")
 
 It loads the DLL into its Process Address Space via a call to `LoadLibrary` and receives the Handle to the DLL’s two exports `h_Init` and `h_Release` via calls to `GetProcAddress`. If we fire up x32dbg and look at this Loaded DLL in the process space:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/20_dllimportresolved.JPG "{{ site.baseurl }}/images/CredentialsStealer/20_dllimportresolved.JPG")
+
+We can see the export `h_Init`, `h_Release` have been decrypted and the imports have been resolved. At this point we can use savedata command in x32Dbg to dump this resolved DLL out and open it in IDA to see what the exports do:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/21_hinitresolved.JPG "{{ site.baseurl }}/images/CredentialsStealer/21_hinitresolved.JPG")
+
+As it’s shown here `h_Init` is just a wrapper around `SetWindowsHookExA` WinAPI which sets `sub_10001030` as a `WH_KEYBOARD` hook procedure for all the existing threads in the same desktop as the malware. Looking at `sub_10001030` gives us .
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/22_hookfunc.JPG "{{ site.baseurl }}/images/CredentialsStealer/22_hookfunc.JPG")
+
+It initialises a string “\<WINDIR>\bank.log” and passes it to a function `sub_1000121A`:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/22_100121A.JPG "{{ site.baseurl }}/images/CredentialsStealer/22_100121A.JPG")
+
+This subroutine takes us into a rabbit hole of obfuscation, however hunting down the routines a call to CreateFileA can be found in `sub_10004DFD` with this string as the first argument.
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/23_keylogcreate.JPG "{{ site.baseurl }}/images/CredentialsStealer/23_keylogcreate.JPG")
+
+Then the Keycode supplied to this Hook procedure is converted to character via a call to `GetKeyNameTextA`:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/24_GetKeyText.JPG "{{ site.baseurl }}/images/CredentialsStealer/24_GetKeyText.JPG")
+
+Every keystroke by the user thus is converted to its corresponding character and logged in the \<WINDIR>\bank.log once the `h_Init` routine is called. 
+
+Taking a look at h_Release we see it’s just a wrapper around UnhookWindowsHookEx which unhooks the procedure hooked by `h_Init`.
+![alt text]({{ site.baseurl }}/images/CredentialsStealer/25_hrelease.JPG "{{ site.baseurl }}/images/CredentialsStealer/25_hrelease.JPG")
+
+
 (entry in progress)
