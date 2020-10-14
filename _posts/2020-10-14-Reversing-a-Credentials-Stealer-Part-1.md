@@ -102,6 +102,8 @@ Every keystroke by the user thus is converted to its corresponding character and
 Taking a look at h_Release we see it’s just a wrapper around UnhookWindowsHookEx which unhooks the procedure hooked by `h_Init`.
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/25_hrelease.JPG "{{ site.baseurl }}/images/CredentialsStealer/25_hrelease.JPG")
 
+Therefore the two exports by this DLLs basically installs a keylogger hook function that logs all keystrokes by a user to a file, and the other export uninstalls this hook.
+
 Going back to the malware, value of a Registry HKEY_LOCAL_MACHINE\Software\SARS is checked and in case it doesn’t exist infected machine’s IP is collected via calls to `gethostname` and `gethostbyname`, appended to some data in mail format and sent to smtp.mail.ru (the
 malware’s C2C) which right now doesn’t have a valid DNS record.
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/26_localIPcollector.JPG "{{ site.baseurl }}/images/CredentialsStealer/26_localIPcollector.JPG")
