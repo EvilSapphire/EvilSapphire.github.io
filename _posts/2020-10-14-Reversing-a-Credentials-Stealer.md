@@ -15,6 +15,7 @@ There are multiple ways to unpack a UPX packed file . UPX generally unpacks the 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/3_upxunpack.JPG "{{ site.baseurl }}/images/CredentialsStealer/3_upxunpack.JPG")
 
 This gives us the unpacked malware. Taking a look at it on HxD we find there is actually a second PE starting at raw offset 0x2F4A6 or RVA 0x300A6 unpacked by UPX inside this PE.
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/4_hxd2.JPG "{{ site.baseurl }}/images/CredentialsStealer/4_hxd2.JPG")
 
 Dumping this PE out and viewing it on PE Bear shows us it is a DLLnamed hooks.dll with two exports h_Init and h_Release:
