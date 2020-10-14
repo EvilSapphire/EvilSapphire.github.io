@@ -67,7 +67,7 @@ For any subsequent calls to this Window procedure, if Msg is equal to 0x308 whic
 The \<WINDIR>\rundllx.sys is passed to a function that acts as a wrapper over a `CreateFile` call, this creates a file rundllx.sys in the Windows Directory:
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/16_cliplogcreate.JPG "{{ site.baseurl }}/images/CredentialsStealer/16_cliplogcreate.JPG")
 
-Then the handle to this File and the handle to the clipboard data in `CF_TEXT` format is passed to a function acting as a wrapper over a `WriteFile` call, which writes the clipboard data to the \<Windir>\rundllx.sys. So this window copies all clipboard data in `CF_TEXT` format and logs them to a file.
+Then the handle to this File and the handle to the clipboard data in `CF_TEXT` format is passed to a function acting as a wrapper over a `WriteFile` call, which writes the clipboard data to the \<Windir>\rundllx.sys. So whenever the content of the clipboard changes (which most often means the user has copied some data into the clipboard) this window copies the clipboard data in `CF_TEXT` format and logs them to a file.
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/17_cliplogwrite.JPG "{{ site.baseurl }}/images/CredentialsStealer/17_cliplogwrite.JPG")
 
 Next code of interest is:
