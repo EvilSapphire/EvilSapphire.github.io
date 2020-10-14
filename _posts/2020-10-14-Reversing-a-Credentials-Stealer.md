@@ -71,6 +71,7 @@ Then the handle to this File and the handle to the clipboard data in `CF_TEXT` f
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/17_cliplogwrite.JPG "{{ site.baseurl }}/images/CredentialsStealer/17_cliplogwrite.JPG")
 
 Next code of interest is:
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/18_sock64create.JPG "{{ site.baseurl }}/images/CredentialsStealer/18_sock64create.JPG")
 
 Which creates a file WINDIR\sock64.dll and writes the second PE (hooks.dll) inside the
@@ -83,7 +84,7 @@ It loads the DLL into its Process Address Space via a call to `LoadLibrary` and 
 We can see the export `h_Init`, `h_Release` have been decrypted and the imports have been resolved. At this point we can use savedata command in x32Dbg to dump this resolved DLL out and open it in IDA to see what the exports do:
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/21_hinitresolved.JPG "{{ site.baseurl }}/images/CredentialsStealer/21_hinitresolved.JPG")
 
-As it’s shown here `h_Init` is just a wrapper around `SetWindowsHookExA` WinAPI which sets `sub_10001030` as a `WH_KEYBOARD` hook procedure for all the existing threads in the same desktop as the malware. Looking at `sub_10001030` gives us .
+As it’s shown here `h_Init` is just a wrapper around `SetWindowsHookExA` WinAPI which sets `sub_10001030` as a `WH_KEYBOARD` hook procedure for all the existing threads in the same desktop as the malware. According to MSDN, `WH_KEYBOARD` procedure is 'a hook procedure that monitors keystroke messages.' Looking at `sub_10001030` gives us .
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/22_hookfunc.JPG "{{ site.baseurl }}/images/CredentialsStealer/22_hookfunc.JPG")
 
 It initialises a string “\<WINDIR>\bank.log” and passes it to a function `sub_1000121A`:
@@ -93,6 +94,7 @@ This subroutine takes us into a rabbit hole of obfuscation, however hunting down
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/23_keylogcreate.JPG "{{ site.baseurl }}/images/CredentialsStealer/23_keylogcreate.JPG")
 
 Then the Keycode supplied to this Hook procedure is converted to character via a call to `GetKeyNameTextA`:
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/24_GetKeyText.JPG "{{ site.baseurl }}/images/CredentialsStealer/24_GetKeyText.JPG")
 
 Every keystroke by the user thus is converted to its corresponding character and logged in the \<WINDIR>\bank.log once the `h_Init` routine is called. 
@@ -109,6 +111,7 @@ malware’s C2C) which right now doesn’t have a valid DNS record.
 Once this mail has been sent the the Registry HKEY_LOCAL_MACHINE\Software\SARS isadded and set the value to ‘start_bank’. So if the malware has run once in a machine this initial mail containing the local IP of the machine will be sent only once. This subroutine basically informs the Malware C2C of the IP it has successfully infected.
 
 Now we enter the interesting part of the malware code. It initiates an infinite loop and first we see calls to:
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/28_barclaysIE.JPG "{{ site.baseurl }}/images/CredentialsStealer/28_barclaysIE.JPG")
 
 `GetForegroundWindow` which retrieves handle to the topmost/foreground window and retrieves the Text at the foreground window title bar via a call to `GetWindowTextA`. Then it calls `FindWindowA` which returns a handle if the passed Classname and WindowName (foreground window Title text in this case) matches. The lpClassName passed to this call is “IEFrame” which is the predefined classname for Internet Explorer. So this `FindWindowA` call will only return a valid handle if the foreground window the user has open is a Internet Explorer Window. Then this handle is passed to a subroutine I labelled as `BarclaysIEChecker`. Peeking into this subroutine gives us:
@@ -118,6 +121,7 @@ Now we enter the interesting part of the malware code. It initiates an infinite 
 
 It enumerates the Internet Explorer window open in the foreground by its child windows via WorkerA->rebarwindows32->comboboxex32->combobox->Edit, which returns a handle to the
 address bar of the IE window. If a valid handle to the Address bar is retrieved:
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/31_sendmessageStrstr.JPG "{{ site.baseurl }}/images/CredentialsStealer/31_sendmessageStrstr.JPG")
 
 A Thread Message to the caller/creator thread of the address bar window is sent with `Msg` parameter set to `WM_GETTEXT`. This will instruct the caller/creator thread of the address bar window to return the Text entered by the user in the address bar in the `lParam` pointer. This `lParam` string which now contains the domain name the user entered
@@ -127,6 +131,7 @@ the keystrokes of the user if they have the Barclays login page open on their br
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/32_hreleaseskip.JPG "{{ site.baseurl }}/images/CredentialsStealer/32_hreleaseskip.JPG")
 
 Then the ForegroundWindow Title retrieved earlier is passed to a subroutine I labelled as `IWebBrowser2StorerGlobalCOMFlagSetter` (which basically describes all that it is doing).
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG "{{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG")
 
 This is where the Malware starts levearaging the COM framework exposed by Microsoft Windows. Therefore further discussion on this Malware warrants a second blog post
