@@ -12,6 +12,7 @@ If we take a look at the sections, we can clearly see this is a file packed with
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/2_UPXsections.JPG "{{ site.baseurl }}/images/CredentialsStealer/2_UPXsections.JPG") 
 
 There are multiple ways to unpack a UPX packed file . UPX generally unpacks the original PE and then jumps to the Original Entry Point via a JMP instruction. So we can run this on a debugger and wait till the JMP is hit and dump out the unpacked executable from memory. An easier way is to install UPX packer itself that comes with the unpacker flag ‘-d’ and unpack it.
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/3_upxunpack.JPG "{{ site.baseurl }}/images/CredentialsStealer/3_upxunpack.JPG")
 
 This gives us the unpacked malware. Taking a look at it on HxD we find there is actually a second PE starting at raw offset 0x2F4A6 or RVA 0x300A6 unpacked by UPX inside this PE.
@@ -39,12 +40,14 @@ Then 3 Strings are initialised in Global Memory which are the filenames (\<WINDI
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/9_filestrings.JPG "{{ site.baseurl }}/images/CredentialsStealer/9_filestrings.JPG") 
 
 The next code of interest is a call to CreateThread:
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/10_CreateThread.JPG "{{ site.baseurl }}/images/CredentialsStealer/10_CreateThread.JPG")
 
 The EntryPoint of this Thread is a Function I labelled as SpawnClipBoardHookWindow in IDA. Taking a peek into the function shows us:
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/11_threadentry.JPG "{{ site.baseurl }}/images/CredentialsStealer/11_threadentry.JPG")
 
 A Window being registered, created and its Message Loop. The Callback Window Procedure when this Window receives a message is the function I labeled as ClipBoardHookWndProc
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/12_Wndproc.JPG "{{ site.baseurl }}/images/CredentialsStealer/12_Wndproc.JPG")
 
 Taking a look inside this function:
@@ -54,14 +57,14 @@ We see that when this Window Procedure receives the `WM_CREATE` notification whi
 >SetClipboardViewer Adds the specified window to the chain of clipboard viewers. Clipboard viewer windows receive a WM_DRAWCLIPBOARD message whenever the content of the clipboard changes.
 
 Therefore upon creation this window is inserted in the clipboard viewer chain.
-For any subsequent calls to this Window procedure, if Msg is equal to 0x308 which is the value for the `WM_DRAWCLIPBOARD` constant as #defined in WinUser.H, which means whenever the content of the clipboard has changed according to MSDN above, it calls :
+For any subsequent calls to this Window procedure, if Msg is equal to 0x308 which is the value for the `WM_DRAWCLIPBOARD` constant as `#define`d in `WinUser.h`, which means whenever the content of the clipboard has changed according to MSDN above, it calls :
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/14_wmdrawclipboard.JPG "{{ site.baseurl }}/images/CredentialsStealer/14_wmdrawclipboard.JPG")
 
-`OpenClipBoard` to open the clipboard relevant with the current task, and then `GetClipBoardData` to get a Handle to the Clipboard Data in `CF_TEXT` format. Then a string is initialised with the value <Windir>\rundllx.sys.
+`OpenClipBoard` to open the clipboard relevant with the current task, and then `GetClipBoardData` to get a Handle to the Clipboard Data in `CF_TEXT` format. Then a string is initialised with the value \<WINDIR>\rundllx.sys.
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/15_clipstealer.JPG "{{ site.baseurl }}/images/CredentialsStealer/15_clipstealer.JPG")
 
-The \<Windir>\rundllx.sys is passed to a function that acts as a wrapper over a `CreateFile` call, this creates a file rundllx.sys in the Windows Directory:
+The \<WINDIR>\rundllx.sys is passed to a function that acts as a wrapper over a `CreateFile` call, this creates a file rundllx.sys in the Windows Directory:
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/16_cliplogcreate.JPG "{{ site.baseurl }}/images/CredentialsStealer/16_cliplogcreate.JPG")
 
 Then the handle to this File and the handle to the clipboard data in `CF_TEXT` format is passed to a function acting as a wrapper over a `WriteFile` call, which writes the clipboard data to the \<Windir>\rundllx.sys. So this window copies all clipboard data in `CF_TEXT` format and logs them to a file.
