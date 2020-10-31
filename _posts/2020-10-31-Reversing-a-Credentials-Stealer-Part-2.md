@@ -3,10 +3,11 @@ layout: post
 title: Reversing a Barclays Bank Credentials Stealer (Part 2)
 ---
 
-Welcome to part 2 of the analysis work of a Barclays Bank credentials stealer. Last time we left the discussion at the complicatedly named `IWebBrowser2StorerGlobalCOMFlagSetter` Function which despite my convoluted naming scheme simply describes all that it is doing.
+Welcome to part 2 of the analysis work of a Barclays Bank credentials stealer. Last time we left the discussion at the complicatedly named `IWebBrowser2StorerGlobalCOMFlagSetter` Function which despite my convoluted naming scheme simply describes all that it is doing. This function is one of the most interesting portions of this malware where it leverages the COM framework to obtain a handle to the Internet Explorer window with the Barclays Bank Login Page user has open on the Foreground. This part will mainly deal with discussing the internals of this specific function.
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG "{{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG")
 
-This function is where the Malware starts leveraging the COM framework provided by Microsoft. At the very start we see a call to `CoCreateInstance` which creates an interface with a specified RIID of a COM object associated with the specified CLSID.
+At the very start we see a call to `CoCreateInstance` which creates an interface with a specified RIID of a COM object associated with the specified CLSID.
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer2/1_cocreateinstance.JPG "{{ site.baseurl }}/images/CredentialsStealer2/1_cocreateinstance.JPG")
 
@@ -75,8 +76,25 @@ From ExDisp.h again it can be found that the corresponding interface is an `IWeb
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile2.JPG "{{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile.JPG")
 
+The `IWebBrowser2.get_LocationName()` Method in the IWebBrowser2 Interface Vtable is called which returns the Title text of the associated Internet Explorer Window:
 
-(Entry in progress)
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/12_getlocationname.JPG "{{ site.baseurl }}/images/CredentialsStealer2/12_getlocationname.JPG")
 
+The Pointer pointing to this Title Text is then moved to a stack variable Labelled TitleText, it is converted to a MultiByte String via a call to `WideCharToMultiByte` API:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/13_widechartomulbyte.JPG "{{ site.baseurl }}/images/CredentialsStealer2/13_widechartomulbyte.JPG")
+
+And then a call to `strstr` is made to determine if this converted TitleText string is contained within the `ForeGroundWindowName` passed as an argument to this
+`IWebBrowser2StorerGlobalCOMFlagSetter` function. The `ForeGroundWindowName` as discussed in the previous entry the Title Text of the current window on the foreground retrieved via calls to `GetForegroundWindow` and `SendMessageA`. Therefore the loop iterates over all the open Internet Explorer windows and picks the one the user currently has open on the foreground which contains the Barclays Bank Login Page.
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/14_strstrforeground.JPG "{{ site.baseurl }}/images/CredentialsStealer2/14_strstrforeground.JPG")
+
+If the TitleText obtained from manipulating the COM objects is contained in the ForegroundWindow Name, which means we have found the Internet Explorer Object running in the Foreground among the enumerated Internet Explorer objects, the loop is broken and this `IWebBrowser2` Interface is stored in the memory address `0x43BC00`:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/13_Iwebbrowserstorer.JPG "{{ site.baseurl }}/images/CredentialsStealer2/13_Iwebbrowserstorer.JPG")
+
+It also sets the global value I Labelled as `GlobalCOMFlag` as 1. This will notify another function (`COMStepDeterminer`) down the line that an `IWebBrowser2` Interface to the Foreground Internet Explorer Object that has the Bank Login page open has been found and has been stored in memory.
+
+Therefore the function manipulates the COM Framework cleverly and obtains a handle to the Foreground IE window. The next post will deal with how it reads credentials from this Foreground IE window where the user has the Barclays Bank Login Page open and writes them to a file to send over to the attacker controlled C2C. Thanks for reading!
 
 
