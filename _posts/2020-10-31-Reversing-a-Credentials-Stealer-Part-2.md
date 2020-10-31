@@ -26,6 +26,32 @@ In the ExDisp.h header file shipped with the Windows SDK we find the reference t
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer2/5_exdispriid.JPG "{ site.baseurl }}/images/CredentialsStealer2/5_exdispriid.JPG")
 
+Therefore this call is asking a `IShellWindows` Interface to the `ShellWindows` COM Object. Then the Method at the 0x1C offset in this interface is called:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/6_ishellwindowsvtable.JPG "{{ site.baseurl }}/images/CredentialsStealer2/6_ishellwindowsvtable.JPG")
+
+In the same ExDisp.h header we find the struct definition of the IShellWindows Virtual table. Counting the offset we find the method to be `get_count`:
+
+```
+typedef struct IShellWindowsVtbl
+{
+BEGIN_INTERFACE
+HRESULT ( STDMETHODCALLTYPE *QueryInterface )(
+__RPC__in IShellWindows * This,
+/* [in] */ __RPC__in REFIID riid,
+/* [annotation][iid_is][out] */
+_COM_Outptr_ void **ppvObject);
+…
+HRESULT ( STDMETHODCALLTYPE *get_Count )(
+__RPC__in IShellWindows * This,
+/* [retval][out] */ __RPC__out long *Count);
+
+…
+
+END_INTERFACE
+}
+```
+
 (Entry in progress)
 
 
