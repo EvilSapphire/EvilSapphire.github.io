@@ -10,5 +10,7 @@ This function is where the Malware starts leveraging the COM framework provided 
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer2/1_cocreateinstance.JPG "{{ site.baseurl }}/images/CredentialsStealer2/1_cocreateinstance.JPG")
 
+(Entry in progress)
+
 
 
