@@ -10,6 +10,22 @@ This function is where the Malware starts leveraging the COM framework provided 
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer2/1_cocreateinstance.JPG "{{ site.baseurl }}/images/CredentialsStealer2/1_cocreateinstance.JPG")
 
+The supplied `CLSID` and `RIID` are stored variables in this binary, taking a look at them in IDA Hex view gives us,
+`CLSID` in little endian format:
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/2_clsidhexview.JPG "{{ site.baseurl }}/images/CredentialsStealer2/2_clsidhexview.JPG")
+
+`CLSID` is a globally unique identifier of a COM Object which can be found in the Registry:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/3_regclsid.JPG "{{ site.baseurl }}/images/CredentialsStealer2/3_regclsid.JPG")
+
+Therefore the COM Object associated with the CLSID is ShellWindows which contains a collection of all Explorer/Internet Explorer Windows User has opened. Taking a look at the `RIID` we see in IDA Hex View:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/4_riidhexview.JPG "{{ site.baseurl }}/images/CredentialsStealer2/4_riidhexview.JPG")
+
+In the ExDisp.h header file shipped with the Windows SDK we find the reference to this `RIID`:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/5_exdispriid.JPG "{ site.baseurl }}/images/CredentialsStealer2/5_exdispriid.JPG")
+
 (Entry in progress)
 
 
