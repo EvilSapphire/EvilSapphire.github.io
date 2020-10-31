@@ -13,6 +13,7 @@ At the very start we see a call to `CoCreateInstance` which creates an interface
 
 The supplied `CLSID` and `RIID` are stored variables in this binary, taking a look at them in IDA Hex view gives us,
 `CLSID` in little endian format:
+
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer2/2_clsidhexview.JPG "{{ site.baseurl }}/images/CredentialsStealer2/2_clsidhexview.JPG")
 
 `CLSID` is a globally unique identifier of a COM Object which can be found in the Registry:
