@@ -41,7 +41,9 @@ __RPC__in IShellWindows * This,
 /* [in] */ __RPC__in REFIID riid,
 /* [annotation][iid_is][out] */
 _COM_Outptr_ void **ppvObject);
+
 …
+
 HRESULT ( STDMETHODCALLTYPE *get_Count )(
 __RPC__in IShellWindows * This,
 /* [retval][out] */ __RPC__out long *Count);
@@ -51,6 +53,27 @@ __RPC__in IShellWindows * This,
 END_INTERFACE
 }
 ```
+
+`IShellWindowsVtbl.get_count` returns the count of all open Internet Explorer Objects in the count Variable on the stack. This count variable is then used as a counter in a loop to iterate over all the open Internet Explorer Objects in the infected machine:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/7_ieobjectiteration.JPG "{{ site.baseurl }}/images/CredentialsStealer2/7_ieobjectiteration.JPG")
+
+For each Internet Explorer object the `IShellWindowsVtbl.Item()` method is called which returns the IDispatch Interface for the registered shell window in the `IDispatch` variable labelled on the stack.
+Then the first Method in the IDispatch VTable is called:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/8_queryinterfacecall.JPG "{{ site.baseurl }}/images/CredentialsStealer2/8_queryinterfacecall.JPG")
+
+From OAIdl.h supplied with Windows SDK, this method turns out to be `IDispatchVtbl.QueryInterface()`:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/9_idispatchvttable.JPG "{{ site.baseurl }}/images/CredentialsStealer2/9_idispatchvttable.JPG")
+
+`QueryInterface()` returns an Instance in the ppvObject associated with the supplied RIID. In the call the supplied RIID is yet another Global Variable at address 0x437B28 which can be viewed in the IDA Hex Viewer to be:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/10_iwebbrowserriid.JPG "{{ site.baseurl }}/images/CredentialsStealer2/10_iwebbrowserriid.JPG")
+
+From ExDisp.h again it can be found that the corresponding interface is an `IWebBrowser2` Interface:
+
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile.JPG "{{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile.JPG")
 
 (Entry in progress)
 
