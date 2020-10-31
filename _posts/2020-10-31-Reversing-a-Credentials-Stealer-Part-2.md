@@ -73,7 +73,8 @@ From OAIdl.h supplied with Windows SDK, this method turns out to be `IDispatchVt
 
 From ExDisp.h again it can be found that the corresponding interface is an `IWebBrowser2` Interface:
 
-![alt text]({{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile.JPG "{{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile.JPG")
+![alt text]({{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile2.JPG "{{ site.baseurl }}/images/CredentialsStealer2/11_iwebbrowserheaderfile.JPG")
+
 
 (Entry in progress)
 
