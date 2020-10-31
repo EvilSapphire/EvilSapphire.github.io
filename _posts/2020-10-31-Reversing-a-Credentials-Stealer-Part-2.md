@@ -3,7 +3,7 @@ layout: post
 title: Reversing a Barclays Bank Credentials Stealer (Part 2)
 ---
 
-Welcome to part 2 of the analysis work of a Barclays Bank credentials stealer. Last time we left the discussion at the complicatedly named `IWebBrowser2StorerGlobalCOMFlagSetter` Function which despite my convoluted naming scheme simply describes all the function is doing. This function is one of the most interesting portions of this malware where it leverages the COM framework to obtain a handle to the Internet Explorer window with the Barclays Bank Login Page user has open on the Foreground. This part will mainly deal with discussing the internals of this specific function.
+Welcome to part 2 of the analysis work of a Barclays Bank credentials stealer. Last time we left the discussion at the complicatedly named `IWebBrowser2StorerGlobalCOMFlagSetter` Function which despite my convoluted naming scheme simply describes all that the function is doing. This function is one of the most interesting portions of this malware where it leverages the COM framework to obtain a handle to the Internet Explorer window with the Barclays Bank Login Page user has open on the Foreground. This part will mainly deal with discussing the internals of this specific function.
 
 ![alt text]({{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG "{{ site.baseurl }}/images/CredentialsStealer/33_COMstart.JPG")
 
